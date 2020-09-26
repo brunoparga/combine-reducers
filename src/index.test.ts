@@ -68,12 +68,14 @@ describe('States with nested objects', () => {
 
   it('Works with identity reducers', () => {
     const idFooReducer:
-    SliceReducer<DeepAppState, 'foo'> = (state, _action) => ({ foo: state.foo })
+    SliceReducer<DeepAppState, 'foo'> = (state, action) => ({ foo: state.foo })
     const idQuuxReducer:
-    SliceReducer<BarType, 'quux'> = (state, _action) => ({ quux: state.quux })
+    SliceReducer<BarType, 'quux'> = (state, action) => ({ quux: state.quux })
     const idCorgeReducer:
-    SliceReducer<BarType, 'corge'> = (state, _action) => ({ corge: state.corge })
+    SliceReducer<BarType, 'corge'> = (state, action) => ({ corge: state.corge })
     const reducer = combineReducers(
       { foo: idFooReducer, bar: { quux: idQuuxReducer, corge: idCorgeReducer } })
+    const newState = reducer(state, { type: 'null' })
+    expect(newState).toStrictEqual(state)
   })
 })
