@@ -60,3 +60,20 @@ describe('States with two attributes', () => {
     expect(newState).toStrictEqual(expectedState)
   })
 })
+
+describe('States with nested objects', () => {
+  type BarType = {quux: number, corge: boolean}
+  type DeepAppState = {foo: string, bar: BarType}
+  const state: DeepAppState = { foo: 'baz', bar: { quux: 42, corge: false } }
+
+  it('Works with identity reducers', () => {
+    const idFooReducer:
+    SliceReducer<DeepAppState, 'foo'> = (state, _action) => ({ foo: state.foo })
+    const idQuuxReducer:
+    SliceReducer<BarType, 'quux'> = (state, _action) => ({ quux: state.quux })
+    const idCorgeReducer:
+    SliceReducer<BarType, 'corge'> = (state, _action) => ({ corge: state.corge })
+    const reducer = combineReducers(
+      { foo: idFooReducer, bar: { quux: idQuuxReducer, corge: idCorgeReducer } })
+  })
+})
