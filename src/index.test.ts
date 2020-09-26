@@ -21,21 +21,21 @@ describe('Simple states', () => {
   })
 })
 
-describe('States with two attributes', () => {
-  type AppState = { foo: string, quux: string }
-  const state: AppState = { foo: 'bar', quux: 'corge' }
-
-  const fooReducer: SliceReducer<AppState, 'foo'> =
-  (state: AppState, { type }: Action): Record<'foo', AppState['foo']> => {
-    switch (type) {
-      case 'twodown':
-        return { foo: 'baz' }
-      case 'garplify':
-        return { foo: 'garply' }
-      default:
-        return { foo: state.foo }
-    }
+type AppState = { foo: string, quux: string }
+const fooReducer: SliceReducer<AppState, 'foo'> =
+(state: AppState, { type }: Action): Record<'foo', AppState['foo']> => {
+  switch (type) {
+    case 'twodown':
+      return { foo: 'baz' }
+    case 'garplify':
+      return { foo: 'garply' }
+    default:
+      return { foo: state.foo }
   }
+}
+
+describe('States with two attributes', () => {
+  const state: AppState = { foo: 'bar', quux: 'corge' }
 
   const quuxReducer: SliceReducer<AppState, 'quux'> =
   (state: AppState, { type }: Action): Record<'quux', AppState['quux']> =>
@@ -62,20 +62,31 @@ describe('States with two attributes', () => {
 })
 
 describe('States with nested objects', () => {
-  type BarType = {quux: number, corge: boolean}
-  type DeepAppState = {foo: string, bar: BarType}
+  type BarType = { quux: number, corge: boolean }
+  type DeepAppState = { foo: string, bar: BarType }
   const state: DeepAppState = { foo: 'baz', bar: { quux: 42, corge: false } }
 
+  const idFooReducer: SliceReducer<DeepAppState, 'foo'> = (state) => ({ foo: state.foo })
+  const idQuuxReducer: SliceReducer<BarType, 'quux'> = (state) => ({ quux: state.quux })
+  const idCorgeReducer: SliceReducer<BarType, 'corge'> = (state) => ({ corge: state.corge })
+
   it('Works with identity reducers', () => {
-    const idFooReducer:
-    SliceReducer<DeepAppState, 'foo'> = (state, action) => ({ foo: state.foo })
-    const idQuuxReducer:
-    SliceReducer<BarType, 'quux'> = (state, action) => ({ quux: state.quux })
-    const idCorgeReducer:
-    SliceReducer<BarType, 'corge'> = (state, action) => ({ corge: state.corge })
     const reducer = combineReducers(
-      { foo: idFooReducer, bar: { quux: idQuuxReducer, corge: idCorgeReducer } })
+      { foo: idFooReducer, bar: { quux: idQuuxReducer, corge: idCorgeReducer } }
+    )
     const newState = reducer(state, { type: 'null' })
     expect(newState).toStrictEqual(state)
   })
+
+  it('Works with only a top-level property changing', () => {
+    const reducer = combineReducers(
+      { foo: fooReducer, bar: { quux: idQuuxReducer, corge: idCorgeReducer } }
+    )
+    const newState = reducer(state, { type: 'garplify' })
+    const expectedState = { foo: 'garply', bar: { quux: 42, corge: false } }
+    expect(newState).toStrictEqual(expectedState)
+  })
+
+  // it('Works with only a nested-level property changing')
+  // it('Works with properties on both levels changing')
 })
